@@ -1,0 +1,400 @@
+﻿<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>División de Rangos de IP</title>
+    <style>
+        /* CONFIGURACIÓN DE COLORES (VARIABLES CSS) */
+        :root[data-theme="light"] {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #cccccc;
+            --primary-color: #4caf50;
+            --primary-hover: #45a049;
+            --reset-color: #f44336;
+            --reset-hover: #d32f2f;
+            --input-bg: #ffffff;
+        }
+
+        :root[data-theme="dark"] {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --border-color: #444444;
+            --primary-color: #2e7d32;
+            --primary-hover: #1b5e20;
+            --reset-color: #c62828;
+            --reset-hover: #b71c1c;
+            --input-bg: #2d2d2d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 30px 20px;
+            transition: background-color 0.3s, color 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .top-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-toggle {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* DISEÑO DE PESTAÑAS (TABS) */
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 20px;
+            gap: 5px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            font-weight: bold;
+            margin-bottom: -2px;
+            transition: background 0.2s;
+        }
+
+        .tab.active {
+            background-color: var(--card-bg);
+            border-bottom: 2px solid var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .tab-content {
+            display: none;
+            text-align: left;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ELEMENTOS DE FORMULARIO */
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input, textarea {
+            width: 100%;
+            margin-top: 6px;
+            padding: 10px;
+            font-size: 16px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        input[type="number"] {
+            max-width: 200px;
+        }
+
+        textarea {
+            resize: vertical;
+            font-family: monospace;
+        }
+
+        /* BOTONES DE ACCIÓN */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button.btn-execute {
+            flex-grow: 1;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button.btn-execute:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button.btn-reset {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: var(--reset-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button.btn-reset:hover {
+            background-color: var(--reset-hover);
+        }
+
+        h3 {
+            margin-top: 25px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2 id="lbl-main-title">División de Rangos de IP</h2>
+        <div class="top-controls">
+            <button class="btn-toggle" id="btn-lang" onclick="toggleLanguage()">EN</button>
+            <button class="btn-toggle" id="btn-theme" onclick="toggleTheme()">🌙</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" id="tab-single" onclick="switchTab('single')">Un Rango</div>
+            <div class="tab" id="tab-bulk" onclick="switchTab('bulk')">Múltiples Rangos</div>
+        </div>
+
+        <div id="content-single" class="tab-content active">
+            <label id="lbl-single-prompt" for="ipRange">Introduce el rango de IP:</label>
+            <input type="text" id="ipRange" placeholder="Ej. 1.1.1.1-255.255.255.255">
+
+            <label class="lbl-chunk-size" id="lbl-chunk-single" for="chunkSizeSingle">Tamaño de los rangos deseados:</label>
+            <input type="number" id="chunkSizeSingle" placeholder="IPs x rango" value="32">
+
+            <div class="button-group">
+                <button class="btn-execute btn-submit-text" onclick="ejecutarCalculo('single')">Dividir Rango</button>
+                <button class="btn-reset btn-reset-text" onclick="resetTab('single')">Reiniciar</button>
+            </div>
+
+            <h3 class="lbl-results-title" id="lbl-results-single">Rangos Resultantes:</h3>
+            <textarea id="resultadoSingle" rows="12" readonly placeholder="Los resultados aparecerán aquí..."></textarea>
+        </div>
+
+        <div id="content-bulk" class="tab-content">
+            <label id="lbl-bulk-prompt" for="ipRanges">Introduce los rangos de IP (un rango por línea):</label>
+            <textarea id="ipRanges" rows="6" placeholder="Ej. 1.1.1.1-1.1.1.255&#10;2.2.2.0-2.2.2.100"></textarea>
+
+            <label class="lbl-chunk-size" id="lbl-chunk-bulk" for="chunkSizeBulk">Tamaño de los rangos deseados:</label>
+            <input type="number" id="chunkSizeBulk" placeholder="IPs x rango" value="32">
+
+            <div class="button-group">
+                <button class="btn-execute btn-submit-text" onclick="ejecutarCalculo('bulk')">Dividir Rango</button>
+                <button class="btn-reset btn-reset-text" onclick="resetTab('bulk')">Reiniciar</button>
+            </div>
+
+            <h3 class="lbl-results-title" id="lbl-results-bulk">Rangos Resultantes:</h3>
+            <textarea id="resultadoBulk" rows="12" readonly placeholder="Los resultados aparecerán aquí..."></textarea>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'single';
+        let currentLang = 'es';
+
+        // DICCIONARIO BILINGÜE ACTUALIZADO
+        const i18n = {
+            es: {
+                mainTitle: "División de Rangos de IP",
+                tabSingle: "Un Rango",
+                tabBulk: "Múltiples Rangos",
+                singlePrompt: "Introduce el rango de IP:",
+                bulkPrompt: "Introduce los rangos de IP (un rango por línea):",
+                chunkSize: "Tamaño de los rangos deseados:",
+                btnSubmit: "Dividir Rango",
+                btnReset: "Reiniciar",
+                resultsTitle: "Rangos Resultantes:",
+                alertMsg: "Por favor, introduce datos válidos y un tamaño de rango mayor que cero.",
+                placeholderRes: "Los resultados aparecerán aquí..."
+            },
+            en: {
+                mainTitle: "IP Range Splitting",
+                tabSingle: "Single Range",
+                tabBulk: "Multiple Ranges",
+                singlePrompt: "Enter IP range:",
+                bulkPrompt: "Enter IP ranges (one range per line):",
+                chunkSize: "Desired chunk size:",
+                btnSubmit: "Split Range",
+                btnReset: "Reset",
+                resultsTitle: "Resulting Ranges:",
+                alertMsg: "Please enter valid IP ranges and a chunk size greater than zero.",
+                placeholderRes: "Results will appear here..."
+            }
+        };
+
+        // CAMBIO DE PESTAÑAS
+        function switchTab(mode) {
+            currentMode = mode;
+            document.getElementById('tab-single').classList.toggle('active', mode === 'single');
+            document.getElementById('tab-bulk').classList.toggle('active', mode === 'bulk');
+            
+            document.getElementById('content-single').classList.toggle('active', mode === 'single');
+            document.getElementById('content-bulk').classList.toggle('active', mode === 'bulk');
+        }
+
+        // FUNCIÓN DE REINICIO (RESET) INDEPENDIENTE
+        function resetTab(mode) {
+            if (mode === 'single') {
+                document.getElementById('ipRange').value = '';
+                document.getElementById('chunkSizeSingle').value = '32';
+                document.getElementById('resultadoSingle').value = '';
+                document.getElementById('resultadoSingle').placeholder = i18n[currentLang].placeholderRes;
+            } else {
+                document.getElementById('ipRanges').value = '';
+                document.getElementById('chunkSizeBulk').value = '32';
+                document.getElementById('resultadoBulk').value = '';
+                document.getElementById('resultadoBulk').placeholder = i18n[currentLang].placeholderRes;
+            }
+        }
+
+        // CONTROL DE IDIOMA GLOBAL
+        function toggleLanguage() {
+            currentLang = currentLang === 'es' ? 'en' : 'es';
+            document.getElementById('btn-lang').innerText = currentLang === 'es' ? 'EN' : 'ES';
+            
+            document.getElementById('lbl-main-title').innerText = i18n[currentLang].mainTitle;
+            document.getElementById('tab-single').innerText = i18n[currentLang].tabSingle;
+            document.getElementById('tab-bulk').innerText = i18n[currentLang].tabBulk;
+            document.getElementById('lbl-single-prompt').innerText = i18n[currentLang].singlePrompt;
+            document.getElementById('lbl-bulk-prompt').innerText = i18n[currentLang].bulkPrompt;
+            
+            document.getElementById('lbl-chunk-single').innerText = i18n[currentLang].chunkSize;
+            document.getElementById('lbl-chunk-bulk').innerText = i18n[currentLang].chunkSize;
+            
+            document.querySelectorAll('.btn-submit-text').forEach(btn => btn.innerText = i18n[currentLang].btnSubmit);
+            document.querySelectorAll('.btn-reset-text').forEach(btn => btn.innerText = i18n[currentLang].btnReset);
+            
+            document.getElementById('lbl-results-single').innerText = i18n[currentLang].resultsTitle;
+            document.getElementById('lbl-results-bulk').innerText = i18n[currentLang].resultsTitle;
+            
+            // Actualizar placeholders dinámicos de las cajas de resultados si están vacías
+            ['resultadoSingle', 'resultadoBulk'].forEach(id => {
+                const resBox = document.getElementById(id);
+                if (!resBox.value || resBox.value === i18n.es.placeholderRes || resBox.value === i18n.en.placeholderRes) {
+                    resBox.value = "";
+                    resBox.placeholder = i18n[currentLang].placeholderRes;
+                }
+            });
+        }
+
+        // MODO OSCURO
+        function toggleTheme() {
+            const root = document.documentElement;
+            const currentTheme = root.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            root.setAttribute('data-theme', newTheme);
+            document.getElementById('btn-theme').innerText = newTheme === 'light' ? '🌙' : '☀️';
+        }
+
+        // NÚCLEO DE CÁLCULO ASIGNADO SEGÚN PESTAÑA ACTIVADA
+        function ejecutarCalculo(mode) {
+            let chunkSizeInput, resTextArea, inputRanges = [];
+
+            if (mode === 'single') {
+                chunkSizeInput = parseInt(document.getElementById("chunkSizeSingle").value);
+                resTextArea = document.getElementById("resultadoSingle");
+                const singleValue = document.getElementById("ipRange").value.trim();
+                if (singleValue) inputRanges.push(singleValue);
+            } else {
+                chunkSizeInput = parseInt(document.getElementById("chunkSizeBulk").value);
+                resTextArea = document.getElementById("resultadoBulk");
+                inputRanges = document.getElementById("ipRanges").value.split('\n').map(r => r.trim()).filter(r => r);
+            }
+
+            if (inputRanges.length === 0 || isNaN(chunkSizeInput) || chunkSizeInput <= 0) {
+                alert(i18n[currentLang].alertMsg);
+                return;
+            }
+
+            let resultRanges = [];
+
+            inputRanges.forEach(ipRangeInput => {
+                try {
+                    const [startIp, endIp] = ipRangeInput.split('-').map(ip => ip.split('.').map(Number));
+                    const startNumber = (startIp[0] << 24) + (startIp[1] << 16) + (startIp[2] << 8) + startIp[3];
+                    const endNumber = (endIp[0] << 24) + (endIp[1] << 16) + (endIp[2] << 8) + endIp[3];
+
+                    const totalIps = endNumber - startNumber + 1;
+                    const numChunks = Math.ceil(totalIps / chunkSizeInput);
+                    const chunkSize = Math.ceil(totalIps / numChunks);
+
+                    let currentStart = startNumber;
+                    for (let i = 0; i < numChunks; i++) {
+                        const currentEnd = Math.min(currentStart + chunkSize - 1, endNumber);
+                        resultRanges.push(`${formatIP(currentStart)}-${formatIP(currentEnd)}`);
+                        currentStart = currentEnd + 1;
+                    }
+                } catch (e) {
+                    resultRanges.push(`[Error: ${ipRangeInput}]`);
+                }
+            });
+
+            resTextArea.value = resultRanges.join('\n');
+        }
+
+        // Formateador binario original
+        function formatIP(ipNumber) {
+            const octets = [];
+            for (let i = 3; i >= 0; i--) {
+                octets.push((ipNumber >>> (i * 8)) & 255);
+            }
+            return octets.join('.');
+        }
+    </script>
+</body>
+</html>
